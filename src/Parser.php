@@ -1,4 +1,5 @@
 <?php
+
 namespace pivanov;
 
 use simplehtmldom\HtmlDocument;
@@ -67,6 +68,16 @@ class Parser
      * @var Psr\Log
      */
     private $logger;
+    /**
+     * @var Downloader
+     */
+    private $downloader;
+
+
+    public function __construct()
+    {
+        $this->downloader = new Downloader();
+    }
 
 
     /**
@@ -420,7 +431,7 @@ class Parser
             return $this;
         }
 
-        $downloader = new Downloader([
+        $this->downloader = new Downloader([
             'useSelenium'  => $this->useSelenium,
             'seleniumHost' => $this->seleniumHost,
             'useCache'     => $this->_useCache,
@@ -524,21 +535,6 @@ class Parser
 
 
     /**
-     * Преобразовать модели шаблонов в шаблоны
-     *
-     * @param ParserTpl[] $models
-     *
-     * @return array[]
-     */
-    public static function prepareModels($models)
-    {
-        return array_map(function ($model) {
-            return [$model->pt_tpl_type => $model->pt_tpl_val];
-        }, $models);
-    }
-
-
-    /**
      * Получить контент
      *
      * @return string
@@ -559,6 +555,7 @@ class Parser
     public function useSelenium($use = true)
     {
         $this->useSelenium = $use;
+        $this->downloader->useSelenium($use);
 
         return $this;
     }
@@ -575,6 +572,9 @@ class Parser
     {
         $this->useSelenium  = true;
         $this->seleniumHost = $host;
+
+        $this->downloader->useSelenium(true);
+        $this->downloader->setSeleniumHost($host);
 
         return $this;
     }
@@ -596,6 +596,14 @@ class Parser
         $this->proxyParams = $params;
         $this->useProxy(true);
 
+        $this->downloader->useProxy(true);
+        $this->downloader->setProxy(
+            $params['proxy']['host'],
+            $params['proxy']['port'],
+            $params['proxy']['user'],
+            $params['proxy']['pass']
+        );
+
         return $this;
     }
 
@@ -610,6 +618,7 @@ class Parser
     public function useProxy($use = false)
     {
         $this->useProxy = $use;
+        $this->downloader->useProxy($use);
 
         return $this;
     }
@@ -618,6 +627,7 @@ class Parser
     public function useCache($use = true)
     {
         $this->_useCache = $use;
+        $this->downloader->useCache($use);
 
         return $this;
     }
@@ -630,9 +640,10 @@ class Parser
      */
     public function logError($level, $msg)
     {
-        if (!empty($this->logger)) {
+        if ( ! empty($this->logger)) {
             $this->logger->log($level, $msg);
         }
+
         return $this;
     }
 
@@ -677,5 +688,71 @@ class Parser
         } else {
             return false;
         }
+    }
+
+
+    /**
+     * Установить логер
+     *
+     * @param $logger
+     */
+    public function setLogger($logger)
+    {
+        $this->logger = $logger;
+    }
+
+
+    /**
+     * Получить загрузчк
+     *
+     * @return Downloader
+     */
+    public function getDownloader()
+    {
+        return $this->downloader;
+    }
+
+
+    /**
+     * Установить каталог для файлового кеша
+     *
+     * @param string $dir
+     *
+     * @return $this
+     */
+    public function setCacheDir($dir)
+    {
+        $this->cacheDir = $dir;
+        $this->downloader->setCacheDir($dir);
+
+        return $this;
+    }
+
+
+    /**
+     * Удалить последний кешированный контент
+     *
+     * @return $this
+     */
+    public function removeLastCacheFile()
+    {
+        $this->downloader->removeFromCache();
+
+        return $this;
+    }
+
+
+    /**
+     * Установить User-Agent
+     *
+     * @param string $value
+     *
+     * @return $this
+     */
+    public function setUserAgent($value)
+    {
+        $this->downloader->setHeader('User-Agent', $value);
+
+        return $this;
     }
 }

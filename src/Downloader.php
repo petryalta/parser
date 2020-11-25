@@ -1,4 +1,5 @@
 <?php
+
 namespace pivanov;
 /**
  * Class Downloader
@@ -10,45 +11,46 @@ namespace pivanov;
 
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Facebook\WebDriver\Chrome\ChromeOptions;
 
 class Downloader
 {
     /**
      * @var bool Использовать прокси
      */
-    private $useProxy      = false;
+    private $useProxy = false;
     /**
      * @var string Адрес прокси сервера
      */
-    private $proxyHost     = '';
+    private $proxyHost = '';
     /**
      * @var string Порт прокси сервера
      */
-    private $proxyPort     = '';
+    private $proxyPort = '';
     /**
      * @var string Имя пользователя прокси
      */
-    private $proxyUser     = '';
+    private $proxyUser = '';
     /**
      * @var string Пароль для подключения к прокси
      */
-    private $proxyPass     = '';
+    private $proxyPass = '';
     /**
      * @var bool Использовать Selenium вместо CURL
      */
-    private $useSelenium   = false;
+    private $useSelenium = false;
     /**
      * @var string Строка подключения к Selenium
      */
-    private $seleniumHost  = 'http://localhost:4444/wd/hub';
+    private $seleniumHost = 'http://localhost:4444/wd/hub';
     /**
      * @var bool Использовать файловый кеш
      */
-    private $useCache      = false;
+    private $useCache = false;
     /**
      * @var string Каталог для файлового кеша
      */
-    private $cacheDir      = '';
+    private $cacheDir = '';
     /**
      * @var int Код ответа
      */
@@ -72,12 +74,12 @@ class Downloader
     /**
      * @var string[] Отправляемые заголовки
      */
-    public         $sendHeaders = [
-        'User-Agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:82.0) Gecko/20100101 Firefox/82.0',
-        'Accept' => '*/*',
+    public $sendHeaders = [
+        'User-Agent'      => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:82.0) Gecko/20100101 Firefox/82.0',
+        'Accept'          => '*/*',
         'Accept-Language' => 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3',
         'Accept-Encoding' => 'gzip, deflate',
-        'Content-Type' => 'text/plain;charset=UTF-8',
+        'Content-Type'    => 'text/plain;charset=UTF-8',
     ];
 
 
@@ -237,9 +239,9 @@ class Downloader
      */
     public function addToCache($name, $content)
     {
-        $fileName = md5($name);
+        $fileName            = md5($name);
         $this->lastCacheFile = $fileName;
-        $fullName = $this->cacheDir . '/' . $fileName;
+        $fullName            = $this->cacheDir . '/' . $fileName;
         if (file_exists($fullName)) {
             unlink($fullName);
         }
@@ -277,8 +279,7 @@ class Downloader
      */
     private function getContentCurl($url)
     {
-
-        $ch      = curl_init($url);
+        $ch = curl_init($url);
 
         $hostName = parse_url($url, PHP_URL_HOST);
 
@@ -407,7 +408,11 @@ class Downloader
 
         if ($this->useProxy) {
             // Chrome
-            $options = new \Facebook\WebDriver\Chrome\ChromeOptions();
+            $options = new ChromeOptions();
+
+            if ( ! empty($this->sendHeaders['User-Agent'])) {
+                $options->addArguments(['user-agent' => $this->sendHeaders['User-Agent']]);
+            }
 
             $manifest = [
                 "version"                => "1.0.1",
@@ -472,7 +477,7 @@ JS;
 
             $options->addExtensions([$filename]);
 
-            $capabilites->setCapability(\Facebook\WebDriver\Chrome\ChromeOptions::CAPABILITY, $options);
+            $capabilites->setCapability(ChromeOptions::CAPABILITY, $options);
         }
 
         $driver = RemoteWebDriver::create($this->seleniumHost, $capabilites);
@@ -545,11 +550,13 @@ JS;
 
     /**
      * Удалить из кеша
+     *
      * @param string $fileName
      *
      * @return $this
      */
-    public function removeFromCache($fileName = ''){
+    public function removeFromCache($fileName = '')
+    {
         if (empty($fileName)) {
             $fileName = $this->lastCacheFile;
             $fullName = $this->cacheDir . '/' . $fileName;
@@ -557,32 +564,39 @@ JS;
                 unlink($fullName);
             }
         }
+
         return $this;
     }
 
 
     /**
      * Изменить параметр отправляемого заголовка
-     * @param $key название ключа
+     *
+     * @param $key   название ключа
      * @param $value значение ключа
      *
      * @return $this
      */
-    public function setHeader($key, $value){
-            $this->sendHeaders[$key] = $value;
-            return $this;
+    public function setHeader($key, $value)
+    {
+        $this->sendHeaders[$key] = $value;
+
+        return $this;
     }
 
 
     /**
      * Преобразовать отправляемые заголовки в массив строк (без ключей)
+     *
      * @return string[]
      */
-    public function headersAsArray(){
+    public function headersAsArray()
+    {
         $res = [];
         foreach ($this->sendHeaders as $k => $v) {
-            $res[] = $k.': '.$v;
+            $res[] = $k . ': ' . $v;
         }
+
         return $res;
     }
 }
