@@ -1,0 +1,21 @@
+{
+    "name": "pivanov/parser",
+    "description": "Content downloader and parser",
+    "type": "library",
+    "require": {
+        "php": "^7.2",
+        "simplehtmldom/simplehtmldom": "2.0-RC2",
+        "electrolinux/phpquery": "^0.9.6",
+        "facebook/webdriver": "^1.7"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Petr Ivanov",
+            "email": "petr.yrs@gmail.com"
+        }
+    ],
+    "autoload": {
+        "classmap": ["src/"]
+    }
+}
