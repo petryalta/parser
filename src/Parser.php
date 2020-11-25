@@ -1,4 +1,5 @@
 <?php
+namespace pivanov;
 
 use simplehtmldom\HtmlDocument;
 

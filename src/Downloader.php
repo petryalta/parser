@@ -1,4 +1,5 @@
 <?php
+namespace pivanov;
 /**
  * Class Downloader
  *
