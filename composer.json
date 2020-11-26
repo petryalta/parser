@@ -4,6 +4,7 @@
     "type": "library",
     "require": {
         "php": "^7.2",
+        "ext-zip": "^1.15",
         "simplehtmldom/simplehtmldom": "2.0-RC2",
         "electrolinux/phpquery": "^0.9.6",
         "facebook/webdriver": "^1.7"

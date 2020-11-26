@@ -411,7 +411,7 @@ class Downloader
             $options = new ChromeOptions();
 
             if ( ! empty($this->sendHeaders['User-Agent'])) {
-                $options->addArguments(['user-agent' => $this->sendHeaders['User-Agent']]);
+                $options->addArguments(['--user-agent=' . $this->sendHeaders['User-Agent']]);
             }
 
             $manifest = [
@@ -464,11 +464,11 @@ chrome.webRequest.onAuthRequired.addListener(
             ['blocking']
 );
 JS;
-            $zip           = new ZipArchive();
+            $zip           = new \ZipArchive();
             $filename      = "./proxy_auth_plugin.zip";
 
-            if ($zip->open($filename, ZipArchive::CREATE) !== true) {
-                exit("Невозможно открыть <$filename>\n");
+            if ($zip->open($filename, \ZipArchive::CREATE) !== true) {
+                throw new \Exception("Невозможно открыть <$filename>\n");
             }
 
             $zip->addFromString("manifest.json", json_encode($manifest));
@@ -505,33 +505,17 @@ JS;
      */
     public function getContent($url)
     {
-        Log::info('Получаем контент из ' . $url);
         $refreshCache = false;
         // Получить из файлового кеша
         if ($this->useCache) {
             $html = $this->getFromCache($url);
-            if ( ! empty($html)) {
-                Log::info('Взяли из кеша');
-            }
         }
 
         if (empty($html)) {
-            if ($this->useProxy) {
-                if ( ! empty(Yii::app()->params['proxy']['sleepTime'])) {
-                    $sleepTime = Yii::app()->params['proxy']['sleepTime'];
-                } else {
-                    $sleepTime = 30;
-                }
-                Log::info('Перед использованием прокси спим ' . $sleepTime . ' сек');
-                sleep($sleepTime);
-            }
-
             // если в кеше нет данных или он не используется
             if ($this->useSelenium) {
-                Log::info('Получаем через Selenium');
                 $html = $this->getContentSelenium($url);
             } else {
-                Log::info('Получаем через Curl');
                 $html = $this->getContentCurl($url);
             }
             if ( ! empty($html) && in_array($this->response_code, [0, 200])) {
@@ -540,7 +524,6 @@ JS;
         }
 
         if ($this->useCache && $refreshCache) {
-            Log::info('Кладем в кеш');
             $this->addToCache($url, $html);
         }
 

@@ -3,6 +3,7 @@
 namespace pivanov;
 
 use simplehtmldom\HtmlDocument;
+use phpQuery;
 
 /**
  * Class Parser
@@ -51,7 +52,7 @@ class Parser
     /**
      * @var bool Использовать кеш
      */
-    private $_useCache = true;
+    private $useCache = false;
     /**
      * @var Каталог для файлового кеша
      */
@@ -175,7 +176,7 @@ class Parser
             return '';
         }
 
-        $dom = new DOMDocument();
+        $dom = new \DOMDocument();
         libxml_use_internal_errors(true);
         if ( ! $dom->loadHTML($content)) {
             foreach (libxml_get_errors() as $error) {
@@ -184,7 +185,7 @@ class Parser
             libxml_clear_errors();
         }
 
-        $xpath = new DOMXPath($dom);
+        $xpath = new \DOMXPath($dom);
         $res   = $xpath->query($query);
         if ($res === false) return '';
         $result      = '';
@@ -224,7 +225,7 @@ class Parser
         try {
             if (preg_match_all($reg, $this->content, $mathes) > 0) return $mathes;
             else return '';
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->logError('error', $e->getMessage());
         }
     }
@@ -434,7 +435,7 @@ class Parser
         $this->downloader = new Downloader([
             'useSelenium'  => $this->useSelenium,
             'seleniumHost' => $this->seleniumHost,
-            'useCache'     => $this->_useCache,
+            'useCache'     => $this->useCache,
             'cacheDir'     => $this->cacheDir,
             'useProxy'     => $this->useProxy,
             'proxy'        => ($this->useProxy) ? [
@@ -450,8 +451,8 @@ class Parser
             ],
         ]);
 
-        $this->content = $downloader->getContent($this->url);
-        $code          = $downloader->getResponseCode();
+        $this->content = $this->downloader->getContent($this->url);
+        $code          = $this->downloader->getResponseCode();
         if ( ! in_array($code, [0, 200])) {
             throw new ResponseException("Response code $code");
         }
@@ -626,7 +627,7 @@ class Parser
 
     public function useCache($use = true)
     {
-        $this->_useCache = $use;
+        $this->useCache = $use;
         $this->downloader->useCache($use);
 
         return $this;
@@ -724,6 +725,8 @@ class Parser
     {
         $this->cacheDir = $dir;
         $this->downloader->setCacheDir($dir);
+        $this->useCache(true);
+        $this->downloader->useCache(true);
 
         return $this;
     }
