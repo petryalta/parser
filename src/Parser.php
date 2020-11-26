@@ -4,6 +4,9 @@ namespace pivanov;
 
 use simplehtmldom\HtmlDocument;
 use phpQuery;
+use pivanov\exceptions\CaptchaException;
+use pivanov\exceptions\ResponseException;
+use pivanov\exceptions\TemplateException;
 
 /**
  * Class Parser
@@ -441,8 +444,8 @@ class Parser
             'proxy'        => ($this->useProxy) ? [
                 'host' => $this->proxyParams['host'],
                 'port' => $this->proxyParams['port'],
-                'user' => $this->proxyParams['username'],
-                'pass' => $this->proxyParams['password'],
+                'user' => $this->proxyParams['user'],
+                'pass' => $this->proxyParams['pass'],
             ] : [
                 'host' => '',
                 'port' => '',
@@ -599,10 +602,10 @@ class Parser
 
         $this->downloader->useProxy(true);
         $this->downloader->setProxy(
-            $params['proxy']['host'],
-            $params['proxy']['port'],
-            $params['proxy']['user'],
-            $params['proxy']['pass']
+            $params['host'],
+            $params['port'],
+            $params['user'],
+            $params['pass']
         );
 
         return $this;
